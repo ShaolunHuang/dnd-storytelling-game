@@ -11,6 +11,7 @@ Optionally create new virtual environment for python.
 
 ```bash
 python -m venv venv
+source venv/bin/activate
 ```
 
 Use the package manager [pip](https://pip.pypa.io/en/stable/) to install all dependencies.
