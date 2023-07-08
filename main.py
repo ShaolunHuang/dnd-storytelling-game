@@ -7,6 +7,7 @@ from vertexai.preview.language_models import (
 from google.cloud import texttospeech
 from player_attribute import PlayerAttribute
 from player import Player
+import threading
 
 
 background = """
@@ -132,9 +133,12 @@ def main():
         1.0, text_model, ["goblin", "Forgotten Realms", "dragon"], players
     )
     print(f"{worldsetting}\n\n{cause}\n\n{objective}\n\n")
-    speak_content(worldsetting, "worldsetting")
-    speak_content(cause, "cause")
-    speak_content(objective, "objective")
+    t1 = threading.Thread(target=speak_content, args=(worldsetting, "worldsetting"))
+    t2 = threading.Thread(target=speak_content, args=(cause, "cause"))
+    t3 = threading.Thread(target=speak_content, args=(objective, "objective"))
+    t1.start()
+    t2.start()
+    t3.start()
     parameters = {
         "temperature": 1,
         "max_output_tokens": 500,
@@ -169,6 +173,9 @@ def main():
         **parameters,
     )
     print(f"Response from Model: {response.text}")
+    t1.join()
+    t2.join()
+    t3.join()
     while True:
         user_input = input("Enter something: ")
         response = chat.send_message(
