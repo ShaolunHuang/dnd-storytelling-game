@@ -5,42 +5,62 @@ from vertexai.preview.language_models import (
     TextGenerationModel,
 )
 from google.cloud import texttospeech
-from player_attribute import PlayerAttribute
-from player import Player
+from google.cloud.speech_v2 import SpeechClient
+from google.cloud.speech_v2.types import cloud_speech
+from player_attribute import PlayerAttribute, PlayerInventory
+from player import Character
+
 import threading
+from story_generation import Generator
+from story_narrator import Narrator
 
-background = """The players are all members of a mercenary company called the Silver Blades. They have been hired by 
-a local lord to investigate a series of disappearances in the nearby village of Willow Creek. The lord believes that 
-the disappearances are the work of goblins, and he has asked the Silver Blades to track down the goblins and bring 
-them to justice."""
+background = """
+The players are all members of a mercenary company called the Silver Blades. 
+They have been hired by a local lord to investigate a series of disappearances in the nearby village of Willow Creek. 
+The lord believes that the disappearances are the work of goblins, and he has asked the Silver Blades to track down the goblins and bring them to justice.
+"""
 
-james = Player(
+james = Character()
+james.create(
     "James",
+    "Male",
+    20,
     "human",
+    10,
     "fighter",
     PlayerAttribute(10, 10, 10, 10, 10, 10),
+    PlayerInventory([], [], [], [], [], [], []),
     "An unknown fighter from a rural village named Vancouver",
 )
-alan = Player(
+alan = Character()
+alan.create(
     "Alan",
+    "Male",
+    20,
     "vampire",
+    10,
     "archer",
     PlayerAttribute(10, 10, 10, 10, 10, 10),
-    "An well known vampire from a royal family named Seattle",
+    PlayerInventory([], [], [], [], [], [], []),
+    "A well known vampire from a royal family named Seattle",
 )
-jj = Player(
+jj = Character()
+jj.create(
     "JJ",
-    "half elf",
+    "Male",
+    20,
+    "half-elf",
+    10,
     "cleric",
     PlayerAttribute(10, 10, 10, 10, 10, 10),
-    "A held elf, embarking on a divine quest to heal the world and bring unity through their unique heritage and "
-    "unwavering faith.",
+    PlayerInventory([], [], [], [], [], [], []),
+    "A half-elf, embarking on a divine quest to heal the world and bring unity through their unique heritage and unwavering faith.",
 )
 
 TOKEN_SIZE = 800
 
 
-def speak_content(content: str, name):
+def text_to_speech(content: str, name):
     count = 0
     pt = 0
     while pt < len(content):
@@ -75,120 +95,58 @@ def speak_content(content: str, name):
             print(f'Audio content written to file "output_{name}_{count}.mp3"')
 
 
-def initAI():
-    vertexai.init(project="dnd-storytelling-game", location="us-central1")
-    chat_model = ChatModel.from_pretrained("chat-bison@001")
-    text_model = TextGenerationModel.from_pretrained("text-bison@001")
-    return chat_model, text_model
+def speech_to_text(audio):
+    client = SpeechClient()
 
+    # Reads a file as bytes
+    with open(audio, "rb") as f:
+        content = f.read()
 
-def init_story(temperature, text_model, keywords, players):
-    storyline = ""
-    format_error = True
-    parameters = {
-        "temperature": temperature,
-        "max_output_tokens": 500,
-        "top_p": 0.8,
-        "top_k": 40,
-    }
-    while format_error:
-        storyline = text_model.predict(
-            f"""
-            This is a D&D Style Story Telling Game. Do not use you or I as pronouns.
-            Generate an adventure with the following keywords and adventurers:
-            keywords:{keywords}
-            adventurers: {[player.to_string() for player in players]} First, provide a overview background 
-            description for the adventure, including the map, the social background, the world setting. Start the 
-            background with <world-setting> and end with </world-setting> Then, provide a cause of an adventure. The 
-            cause should explain why the adventure is related to the adventurers. Start with <cause> and end with 
-            </cause> In the end, provide an objective for the adventurers. Start with <objective> and end with 
-            </objective> """,
-            **parameters,
-        ).text
-        format_error = (
-                storyline.find("<world-setting>") == -1
-                or storyline.find("</world-setting>") == -1
-                or storyline.find("<cause>") == -1
-                or storyline.find("</cause>") == -1
-                or storyline.find("<objective>") == -1
-                or storyline.find("</objective>") == -1
-        )
-    worldsetting = storyline.split("<world-setting>")[1].split("</world-setting>")[0]
-    cause = storyline.split("<cause>")[1].split("</cause>")[0]
-    objective = storyline.split("<objective>")[1].split("</objective>")[0]
-    return worldsetting, cause, objective
+    config = cloud_speech.RecognitionConfig(
+        auto_decoding_config={}, language_codes=["en-US"], model="latest_long"
+    )
 
+    request = cloud_speech.RecognizeRequest(
+        recognizer=f"projects/dnd-storytelling-game/locations/global/recognizers/_",
+        config=config,
+        content=content,
+    )
 
-def generatePlayer(players):
-    mode = "speech"
-    # mode = "text"
-    # if mode == "speech":
+    # Transcribes the audio into text
+    response = client.recognize(request=request)
+
+    for result in response.results:
+        print(f"Transcript: {result.alternatives[0].transcript}")
+
+    return response
 
 
 def main():
-    chat_model, text_model = initAI()
+    vertexai.init(project="dnd-storytelling-game", location="us-central1")
     players = [james, alan, jj]
-    worldsetting, cause, objective = init_story(
-        1.0, text_model, ["goblin", "Forgotten Realms", "dragon"], players
-    )
-    print(f"{worldsetting}\n\n{cause}\n\n{objective}\n\n")
-    t1 = threading.Thread(target=speak_content, args=(worldsetting, "worldsetting"))
-    t2 = threading.Thread(target=speak_content, args=(cause, "cause"))
-    t3 = threading.Thread(target=speak_content, args=(objective, "objective"))
-    t1.start()
-    t2.start()
-    t3.start()
-    parameters = {
-        "temperature": 1,
-        "max_output_tokens": 500,
-        "top_p": 0.8,
-        "top_k": 40,
-    }
-    examples = [
-        InputOutputTextPair(
-            input_text="""take the broken sword and kill the monsters""",
-            output_text="""Monsters are down, now...""",
-        )
-    ]
-    chat = chat_model.start_chat(
-        context=f"""
-        This is a D&D Style Story Telling Game. Do not use you or I as pronouns.
-        Worldsetting:{worldsetting}
-        Cause: {cause}
-        Objective: {objective}
-        Adventurers: {[player.to_string() for player in players]}
+    narrater = Narrator(players)
+    narrater.generate_world(["Cyberpunk", "desert", "city", "lava"])
 
-        While describing conversation, use format [name:"content"]. While describing a new character that is not an 
-        adventurers (aka NPC), you should give the character a name and explain its background."""
+    print(
+        f"{narrater.world.worldsetting.to_narrative()}\n\n{narrater.world.worldregion.to_narrative()}\n\n"
     )
-    response = chat.send_message(
-        """First generate an story opening to the adventure. Explain why and how the adventurers meet together to 
-        form a party, Start the opening with <opening> and end with </opening> Then provide explanation to the terms 
-        in the previous text. Terms means NPC, location, organization, equipment. Start the terms with <term> and end 
-        with </term>""",
-        **parameters,
+    text_to_speech(narrater.world.worldsetting.to_narrative(), "worldsetting")
+    text_to_speech(narrater.world.worldregion.to_narrative(), "region")
+
+    narrater.generate_background_story()
+    print(
+        f"Position: {narrater.background.position} \n\n{narrater.background.to_narrative()}\n\n"
     )
-    print(f"Response from Model: {response.text}")
-    t1.join()
-    t2.join()
-    t3.join()
+    text_to_speech(narrater.background.to_narrative(), "background")
+
+    response = narrater.start_adventure()
+    print(f"{response.text}\n")
+    text_to_speech(response.text, "story")
     while True:
-        user_input = input("Enter something: ")
-        response = chat.send_message(
-            f"""
-            {user_input}
-
-            According to the what the adventurers say or act, generate the consequence of the action (such as NPC's reaction, or move to a new location) and slightly progress the story. 
-            You should not generate the adventurers' behaviours. 
-            If the adventures meet a new character, provide detailed description from what the adventurers observe.
-            If the adventures move to a new location, provide detailed environment description.
-            Start the opening with <story> and end with </story>
-            Then provide explanation to the terms in the previous text with more details. Terms means NPC, location, organization, equipment.
-            Start the terms with <term> and end with </term>
-            """,
-            **parameters,
-        )
-        print(f"Response from Model: {response.text}")
+        user_input = input("")
+        response = narrater.next(user_input, "")
+        text_to_speech(response.text, "story")
+        print(f"{response.text}\n")
 
 
 if __name__ == "__main__":
