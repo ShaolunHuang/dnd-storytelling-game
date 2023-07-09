@@ -4,11 +4,14 @@ from vertexai.preview.language_models import (
     InputOutputTextPair,
     TextGenerationModel,
 )
+import os
+
+GOOGLE_CLOUD_PROJECT_ID = os.environ["GOOGLE_CLOUD_PROJECT_ID"]
 
 
 class Generator:
     def __init__(self, players):
-        vertexai.init(project="dnd-storytelling-game", location="us-central1")
+        vertexai.init(project=GOOGLE_CLOUD_PROJECT_ID, location="us-central1")
         self.chat_model = ChatModel.from_pretrained("chat-bison@001")
         self.text_model = TextGenerationModel.from_pretrained("text-bison@001")
         self.worldsetting = ""

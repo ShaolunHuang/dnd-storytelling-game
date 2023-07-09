@@ -1,11 +1,12 @@
 import requests
 import json
+import os
 
 
 class ImageGenerator:
 
     def __init__(self):
-        self.api_key = "DmP9z0tmW9Xn1AxCSekEOqK9nA5LeUeaWD6Qeyvv26A2LPo1ypaKKivmGjlb"
+        self.api_key = os.getenv("STABLE_DIFFUSION_API_KEY")
 
     def get_image(self, prompt):
         uri = "https://stablediffusionapi.com/api/v3/dreambooth"

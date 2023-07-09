@@ -21,11 +21,20 @@ python -m pip install -r requirements.txt
 ```
 
 Install Google CLI and authenticate with your Google account from this [url](
-https://cloud.google.com/sdk/docs/install?hl=zh-cn).
+https://cloud.google.com/sdk/docs/install).
 
 ```bash
 gcloud auth application-default login
 ```
+
+On Google Cloud Console, please enable the following APIs:
+1. Vertex AI API
+2. Cloud Text-to-Speech API
+3. Cloud Speech-to-Text API
+
+Provide the following environment variables:
+1. STABLE_DIFFUSION_API_KEY: API key for [Stable Diffusion API](https://stablediffusionapi.com/settings/api)
+2. GOOGLE_CLOUD_PROJECT_ID: Google Cloud Project ID
 
 ## Usage
 

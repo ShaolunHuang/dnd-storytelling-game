@@ -10,7 +10,7 @@ from google.cloud.speech_v2.types import cloud_speech
 from player_attribute import PlayerAttribute, PlayerInventory
 from player import Character
 from image_generator import ImageGenerator
-
+import os
 import threading
 from story_generation import Generator
 from story_narrator import Narrator
@@ -59,6 +59,7 @@ jj.create(
     "unwavering faith.",
 )
 
+GOOGLE_CLOUD_PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT_ID")
 TOKEN_SIZE = 800
 
 
@@ -109,7 +110,7 @@ def speech_to_text(audio):
     )
 
     request = cloud_speech.RecognizeRequest(
-        recognizer=f"projects/dnd-storytelling-game/locations/global/recognizers/_",
+        recognizer=f"projects/{GOOGLE_CLOUD_PROJECT_ID}/locations/global/recognizers/_",
         config=config,
         content=content,
     )
@@ -124,7 +125,7 @@ def speech_to_text(audio):
 
 
 def main():
-    vertexai.init(project="dnd-storytelling-game", location="us-central1")
+    vertexai.init(project=GOOGLE_CLOUD_PROJECT_ID, location="us-central1")
     players = [james, alan, jj]
     narrater = Narrator(players)
     narrater.generate_world(["Cyberpunk", "desert", "city", "lava"])
