@@ -1,5 +1,6 @@
 import cv2
 import tkinter as tk
+from tkinter import ttk
 
 def edit_img():
     background = cv2.imread("resources/background.png")
@@ -69,47 +70,86 @@ class DNDStorytellingGame:
         # text_widget.insert('end', text)
         # text_widget_window = canvas.create_window(150, 150, window=text_widget)
 
-
-        # Second Page
-        self.canvas.create_text(canvas_width / 3, canvas_height / 9 * 2, text='Your Name', font=field_font, fill='black') # Text
+        # ---------------------------- Second Page of Player Settings ---------------------------- #
+        # Player Name
+        self.canvas.create_text(canvas_width / 6, canvas_height / 10 * 2, text='Your Name', font=field_font, fill='black') # Text
         name = tk.Text(self.canvas, height = 1, width = 20)
-        self.canvas.create_window(canvas_width / 3 * 2, canvas_height / 9 * 2, window=name, anchor=tk.CENTER)
+        self.canvas.create_window(canvas_width / 6 * 2, canvas_height / 10 * 2, window=name, anchor=tk.CENTER)
 
-        self.canvas.create_text(canvas_width / 3, canvas_height / 9 * 3, text='Sex', font=field_font, fill='black') # List of Choice
+        # Sex
+        self.canvas.create_text(canvas_width / 6, canvas_height / 10 * 3, text='Sex', font=field_font, fill='black') # List of Choice
         var = tk.StringVar()
         male = tk.Radiobutton(self.canvas, text="Male", font=field_font, variable=var, value='male')
-        self.canvas.create_window(canvas_width / 3 * 1.85, canvas_height / 9 * 3, window=male, anchor=tk.CENTER)
+        self.canvas.create_window(canvas_width / 6 * 1.8, canvas_height / 10 * 3, window=male, anchor=tk.CENTER)
         female = tk.Radiobutton(self.canvas, text="Female", font=field_font, variable=var, value='female')
-        self.canvas.create_window(canvas_width / 3 * 2.2, canvas_height / 9 * 3, window=female, anchor=tk.CENTER)
+        self.canvas.create_window(canvas_width / 6 * 2.3, canvas_height / 10 * 3, window=female, anchor=tk.CENTER)
 
-        self.canvas.create_text(canvas_width / 3, canvas_height / 9 * 4, text='Age', font=field_font, fill='black')  # Text
+        # Age
+        self.canvas.create_text(canvas_width / 6, canvas_height / 10 * 4, text='Age', font=field_font, fill='black')  # Text
         age = tk.Text(self.canvas, height = 1, width = 5)
-        self.canvas.create_window(canvas_width / 3 * 2, canvas_height / 9 * 4, window=age, anchor=tk.CENTER)
+        self.canvas.create_window(canvas_width / 6 * 2, canvas_height / 10 * 4, window=age, anchor=tk.CENTER)
         
-        self.canvas.create_text(canvas_width / 3, canvas_height / 9 * 5, text='Race', font=field_font, fill='black') # Text
+        # Race
+        self.canvas.create_text(canvas_width / 6, canvas_height / 10 * 5, text='Race', font=field_font, fill='black') # Text
         race = tk.Text(self.canvas, height = 1, width = 20)
-        self.canvas.create_window(canvas_width / 3 * 2, canvas_height / 9 * 5, window=race, anchor=tk.CENTER)
+        self.canvas.create_window(canvas_width / 6 * 2, canvas_height / 10 * 5, window=race, anchor=tk.CENTER)
 
-        self.canvas.create_text(canvas_width / 3, canvas_height / 9 * 6, text='Level', font=field_font, fill='black') # Text
+        # Level
+        self.canvas.create_text(canvas_width / 6, canvas_height / 10 * 6, text='Level', font=field_font, fill='black') # Text
         level = tk.Text(self.canvas, height = 1, width = 20)
-        self.canvas.create_window(canvas_width / 3 * 2, canvas_height / 9 * 6, window=level, anchor=tk.CENTER)
+        self.canvas.create_window(canvas_width / 6 * 2, canvas_height / 10 * 6, window=level, anchor=tk.CENTER)
 
-        self.canvas.create_text(canvas_width / 3, canvas_height / 9 * 7, text='Class', font=field_font, fill='black') # Text
+        # Class
+        self.canvas.create_text(canvas_width / 6, canvas_height / 10 * 7, text='Class', font=field_font, fill='black') # Text
         player_class = tk.Text(self.canvas, height = 1, width = 20)
-        self.canvas.create_window(canvas_width / 3 * 2, canvas_height / 9 * 7, window=player_class, anchor=tk.CENTER)
+        self.canvas.create_window(canvas_width / 6 * 2, canvas_height / 10 * 7, window=player_class, anchor=tk.CENTER)
 
+        ### Player Attributes ###
+        values = list(range(11))
+        self.canvas.create_text(canvas_width / 6 * 3.7, canvas_height / 10 * 2, text='Constitution', font=field_font, fill='black') # 6 drop down range from 0-20
+        cons_drop = ttk.Combobox(self.window, values=values, height = 12, width = 5)
+        cons_drop.current(0)
+        self.canvas.create_window(canvas_width / 6 * 4.5, canvas_height / 10 * 2, window=cons_drop, anchor=tk.CENTER)
+
+        self.canvas.create_text(canvas_width / 6 * 3.7, canvas_height / 10 * 2.5, text='Strength', font=field_font, fill='black')
+        stren_drop = ttk.Combobox(self.window, values=values, height = 12, width = 5)
+        stren_drop.current(0)
+        self.canvas.create_window(canvas_width / 6 * 4.5, canvas_height / 10 * 2.5, window=stren_drop, anchor=tk.CENTER)
+
+        self.canvas.create_text(canvas_width / 6 * 3.7, canvas_height / 10 * 3, text='Dexterity', font=field_font, fill='black')
+        dex_drop = ttk.Combobox(self.window, values=values, height = 12, width = 5)
+        dex_drop.current(0)
+        self.canvas.create_window(canvas_width / 6 * 4.5, canvas_height / 10 * 3, window=dex_drop, anchor=tk.CENTER)
+
+        self.canvas.create_text(canvas_width / 6 * 3.7, canvas_height / 10 * 3.5, text='Intelligence', font=field_font, fill='black')
+        intel_drop = ttk.Combobox(self.window, values=values, height = 12, width = 5)
+        intel_drop.current(0)
+        self.canvas.create_window(canvas_width / 6 * 4.5, canvas_height / 10 * 3.5, window=intel_drop, anchor=tk.CENTER)
+
+        self.canvas.create_text(canvas_width / 6 * 3.7, canvas_height / 10 * 4, text='Wisdom', font=field_font, fill='black')
+        wis_drop = ttk.Combobox(self.window, values=values, height = 12, width = 5)
+        wis_drop.current(0)
+        self.canvas.create_window(canvas_width / 6 * 4.5, canvas_height / 10 * 4, window=wis_drop, anchor=tk.CENTER)
+
+        self.canvas.create_text(canvas_width / 6 * 3.7, canvas_height / 10 * 4.5, text='Charisma', font=field_font, fill='black')
+        char_drop = ttk.Combobox(self.window, values=values, height = 12, width = 5)
+        char_drop.current(0)
+        self.canvas.create_window(canvas_width / 6 * 4.5, canvas_height / 10 * 4.5, window=char_drop, anchor=tk.CENTER)
+
+        self.canvas.create_text(canvas_width / 6 * 3.7, canvas_height / 10 * 5.5, text='Inventory', font=field_font, fill='black') # Text
+        inventory = tk.Text(self.canvas, height = 4, width = 30)
+        self.canvas.create_window(canvas_width / 6 * 4.7, canvas_height / 10 * 5.5, window=inventory, anchor=tk.CENTER)
+
+        self.canvas.create_text(canvas_width / 6 * 3.7, canvas_height / 10 * 7, text='Background', font=field_font, fill='black') # Text
+        background = tk.Text(self.canvas, height = 4, width = 30)
+        self.canvas.create_window(canvas_width / 6 * 4.7, canvas_height / 10 * 7, window=background, anchor=tk.CENTER)
+
+        # Flip the book
         back_button = tk.Button(self.window, text='Last Page', width=10, height=2)
-        self.canvas.create_window(canvas_width / 7 * 1.1, canvas_height / 9 * 7.5, window=back_button, anchor=tk.CENTER)
+        self.canvas.create_window(canvas_width / 7 * 1.1, canvas_height / 10 * 8.5, window=back_button, anchor=tk.CENTER)
 
         next_button = tk.Button(self.window, text='Next Page', width=10, height=2)
-        self.canvas.create_window(canvas_width / 7 * 6, canvas_height / 9 * 7.5, window=next_button, anchor=tk.CENTER)
-
-        # self.canvas.create_text(100, 50, text='Attributes', font=field_font, fill='black') # 6 drop down range from 0-20: str, dex, int, con, app, pow
-        # self.canvas.create_text(100, 50, text='Inventory', font=field_font, fill='black') # Text
-        # self.canvas.create_text(100, 50, text='Background', font=field_font, fill='black') # Text
-
-        # inputtxt = tk.Text(self.canvas, height = 2, width = 5)
-        # self.canvas.create_window(100, 100, window=inputtxt, anchor=tk.NW)
+        self.canvas.create_window(canvas_width / 7 * 6, canvas_height / 10 * 8.5, window=next_button, anchor=tk.CENTER)
         
     # def generatePlayer(self):
         
