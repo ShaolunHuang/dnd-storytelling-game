@@ -54,7 +54,8 @@ jj.create(
     "cleric",
     PlayerAttribute(10, 10, 10, 10, 10, 10),
     PlayerInventory([], [], [], [], [], [], []),
-    "A half-elf, embarking on a divine quest to heal the world and bring unity through their unique heritage and unwavering faith.",
+    "A half-elf, embarking on a divine quest to heal the world and bring unity through their unique heritage and "
+    "unwavering faith.",
 )
 
 TOKEN_SIZE = 800
