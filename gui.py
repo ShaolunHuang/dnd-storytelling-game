@@ -53,10 +53,57 @@ class DNDStorytellingGame:
         self.set_canvas()
 
     def start(self):
+        canvas_width = self.canvas.winfo_reqwidth()
+        canvas_height = self.canvas.winfo_reqheight()
+        
         self.canvas.delete('all')
         self.background_img = tk.PhotoImage(file='resources/old_book.png')
         self.canvas.create_image(0, 0, image=self.background_img, anchor=tk.NW)
-        self.canvas.create_text(640, 360, text='Start', font=('Arial', 40), fill='white')
+        #self.canvas.create_text(640, 100, text='Enter the Game Settings', font=('Arial', 40), fill='white') 
+
+        # First Page
+        # self.canvas.create_text(100, 50, text='Enter the keywords for this game background', font=('Arial', 20), fill='white') # Text
+        # self.canvas.create_text(100, 50, text='Box left blank will be generated automatically', font=('Arial', 10), fill='white')
+        
+        # text_widget = tk.Text(self.window, width=20, height=4)
+        # text_widget.insert('end', text)
+        # text_widget_window = canvas.create_window(150, 150, window=text_widget)
+        
+        
+        
+
+        # Second Page
+        self.canvas.create_text(canvas_width / 3, canvas_height / 7, text='Your Name', font=('Algerian', 15), fill='black') # Text
+        name = tk.Text(self.canvas, height = 1, width = 20)
+        self.canvas.create_window(canvas_width / 3 * 2, canvas_height / 7, window=name, anchor=tk.NW)
+
+        # self.canvas.create_text(100, 50, text='Sex', font=('Arial', 20), fill='white') # List of Choice
+        # var = tk.IntVar()
+        # male = tk.Radiobutton(self.canvas, text="Male", variable=var, value=1)
+        # female = tk.Radiobutton(self.canvas, text="Female", variable=var, value=1)
+
+
+        # self.canvas.create_text(100, 50, text='Age', font=('Arial', 20), fill='white')  # Text
+        # age = tk.Text(self.canvas, height = 2, width = 5)
+        # self.canvas.create_window(100, 100, window=inputtxt, anchor=tk.NW)
+        
+        # self.canvas.create_text(100, 50, text='Race', font=('Arial', 20), fill='white') # Text
+        # race = tk.Text(self.canvas, height = 2, width = 5)
+        # self.canvas.create_window(100, 100, window=inputtxt, anchor=tk.NW)
+
+        # self.canvas.create_text(100, 50, text='Level', font=('Arial', 20), fill='white') # Text
+        # self.canvas.create_text(100, 50, text='Player_Class', font=('Arial', 20), fill='white') # Text
+        # self.canvas.create_text(100, 50, text='Attributes', font=('Arial', 20), fill='white') # 6 drop down range from 0-20: str, dex, int, con, app, pow
+        # self.canvas.create_text(100, 50, text='Inventory', font=('Arial', 20), fill='white') # Text
+        # self.canvas.create_text(100, 50, text='Background', font=('Arial', 20), fill='white') # Text
+
+        # inputtxt = tk.Text(self.canvas, height = 2, width = 5)
+        # self.canvas.create_window(100, 100, window=inputtxt, anchor=tk.NW)
+        
+    # def generatePlayer(self):
+        
+
+
 
     def mainloop(self):
         self.window.mainloop()
