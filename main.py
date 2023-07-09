@@ -124,13 +124,12 @@ def speech_to_text(audio):
     return response
 
 
-def main():
+def main(players, keywords):
     vertexai.init(project=GOOGLE_CLOUD_PROJECT_ID, location="us-central1")
-    players = [james, alan, jj]
     narrater = Narrator(players)
-    narrater.generate_world(["Cyberpunk", "desert", "city", "lava"])
+    narrater.generate_world(keywords)
     image_gen = ImageGenerator()
-    image_gen.get_image(", ".join(["Cyberpunk", "desert", "city", "lava"]))
+    image_gen.get_image(", ".join(keywords))
     print(
         f"{narrater.world.worldsetting.to_narrative()}\n\n{narrater.world.worldregion.to_narrative()}\n\n"
     )
@@ -154,4 +153,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main([james, alan, jj], ["Cyberpunk", "desert", "city", "lava"])
