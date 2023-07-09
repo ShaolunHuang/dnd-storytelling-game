@@ -9,6 +9,7 @@ from google.cloud.speech_v2 import SpeechClient
 from google.cloud.speech_v2.types import cloud_speech
 from player_attribute import PlayerAttribute, PlayerInventory
 from player import Character
+from image_generator import ImageGenerator
 
 import threading
 from story_generation import Generator
@@ -91,7 +92,7 @@ def text_to_speech(content: str, name):
         )
 
         count += 1
-        with open(f"output_{name}_{count}.mp3", "wb") as out:
+        with open(f"resources/audios/output_{name}_{count}.mp3", "wb") as out:
             out.write(response.audio_content)
             print(f'Audio content written to file "output_{name}_{count}.mp3"')
 
@@ -127,7 +128,8 @@ def main():
     players = [james, alan, jj]
     narrater = Narrator(players)
     narrater.generate_world(["Cyberpunk", "desert", "city", "lava"])
-
+    image_gen = ImageGenerator()
+    image_gen.get_image(", ".join(["Cyberpunk", "desert", "city", "lava"]))
     print(
         f"{narrater.world.worldsetting.to_narrative()}\n\n{narrater.world.worldregion.to_narrative()}\n\n"
     )
