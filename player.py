@@ -10,7 +10,18 @@ from google.cloud import texttospeech
 
 
 class Character:
-    def __init__(self, name, sex, age, race, level, player_class, attributes, inventory, background) -> None:
+    def create(
+        self,
+        name,
+        sex,
+        age,
+        race,
+        level,
+        player_class,
+        attributes,
+        inventory,
+        background,
+    ):
         self.name = name
         self.sex = sex
         self.background = background
@@ -20,8 +31,9 @@ class Character:
         self.level = level
         self.inventory = inventory
         self.c_class = player_class
+        self.generated = True
 
-    def __init__(self, json) -> None:
+    def init_from_json(self, json):
         self.name = json["name"]
         self.sex = json["sex"]
         self.background = json["description"]
@@ -31,7 +43,15 @@ class Character:
         self.level = json["level"]
         self.inventory = PlayerInventory(json["equipment"])
         self.c_class = json["class"]
-          
+        self.generated = True
+
+    def prepare(self, name, inhabitant):
+        self.name = name
+        self.inhabitant = inhabitant
+        self.generated = False
+
+    def __init__(self):
+        self.generated = False
 
     def to_string(self):
         return """{
@@ -46,7 +66,18 @@ class Character:
             "equipment":%s,
             "relationship":%s
         }
-        """ % (self.name, self.background, self.sex, self.age, self.level,self.c_class, self.race, self.attributes.to_string(), self.inventory.to_string(), "")
+        """ % (
+            self.name,
+            self.background,
+            self.sex,
+            self.age,
+            self.level,
+            self.c_class,
+            self.race,
+            self.attributes.to_string(),
+            self.inventory.to_string(),
+            "",
+        )
 
 
 def generatePlayer(mode):
@@ -60,5 +91,6 @@ def generatePlayer(mode):
             "Select the way to generate player: A. Description; B. Fill in the blank; C. Randomly generate"
         )
         if input.upper() == "A":
-            player_generator = 
-            input = input("Please enter the following information: name, sex, age, race, level, player_class, attributes, background")
+            input = input(
+                "Please enter the following information: name, sex, age, race, level, player_class, attributes, background"
+            )

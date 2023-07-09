@@ -42,7 +42,7 @@ class PlayerInventory:
         self.righthand = righthand
         self.lefthand = lefthand
 
-    def __init__(self, json) -> None:
+    def init_from_json(self, json) -> None:
         self.inventory = json["inventory"]
         self.helmet = json["helmet"]
         self.chestplate = json["chestplate"]

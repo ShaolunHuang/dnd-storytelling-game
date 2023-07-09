@@ -7,10 +7,12 @@ from vertexai.preview.language_models import (
 from google.cloud import texttospeech
 from google.cloud.speech_v2 import SpeechClient
 from google.cloud.speech_v2.types import cloud_speech
-from player_attribute import PlayerAttribute
-from player import Player
+from player_attribute import PlayerAttribute, PlayerInventory
+from player import Character
+
 import threading
 from story_generation import Generator
+from story_narrator import Narrator
 
 
 background = """
@@ -19,25 +21,40 @@ They have been hired by a local lord to investigate a series of disappearances i
 The lord believes that the disappearances are the work of goblins, and he has asked the Silver Blades to track down the goblins and bring them to justice.
 """
 
-james = Player(
+james = Character()
+james.create(
     "James",
+    "Male",
+    20,
     "human",
+    10,
     "fighter",
     PlayerAttribute(10, 10, 10, 10, 10, 10),
+    PlayerInventory([], [], [], [], [], [], []),
     "An unknown fighter from a rural village named Vancouver",
 )
-alan = Player(
+alan = Character()
+alan.create(
     "Alan",
+    "Male",
+    20,
     "vampire",
+    10,
     "archer",
     PlayerAttribute(10, 10, 10, 10, 10, 10),
-    "An well known vampire from a royal family named Seattle",
+    PlayerInventory([], [], [], [], [], [], []),
+    "A well known vampire from a royal family named Seattle",
 )
-jj = Player(
+jj = Character()
+jj.create(
     "JJ",
+    "Male",
+    20,
     "half-elf",
+    10,
     "cleric",
     PlayerAttribute(10, 10, 10, 10, 10, 10),
+    PlayerInventory([], [], [], [], [], [], []),
     "A half-elf, embarking on a divine quest to heal the world and bring unity through their unique heritage and unwavering faith.",
 )
 
@@ -106,28 +123,31 @@ def speech_to_text(audio):
 
 
 def main():
-    generator = Generator()
+    vertexai.init(project="dnd-storytelling-game", location="us-central1")
     players = [james, alan, jj]
-    worldsetting, cause, objective = generator.init_story_background(
-        1.0, ["goblin", "Forgotten Realms", "dragon"], players
-    )
-    print(f"{worldsetting}\n\n{cause}\n\n{objective}\n\n")
-    text_to_speech(worldsetting, "worldsetting")
-    text_to_speech(cause, "cause")
-    text_to_speech(objective, "objective")
+    narrater = Narrator(players)
+    narrater.generate_world(["Cyberpunk", "desert", "city", "lava"])
 
-    examples = [
-        InputOutputTextPair(
-            input_text="""take the broken sword and kill the monsters""",
-            output_text="""Monsters are down, now...""",
-        )
-    ]
-    response = generator.generate_opening(1.0)
-    print(f"Response from Model: {response.text}")
+    print(
+        f"{narrater.world.worldsetting.to_narrative()}\n\n{narrater.world.worldregion.to_narrative()}\n\n"
+    )
+    text_to_speech(narrater.world.worldsetting.to_narrative(), "worldsetting")
+    text_to_speech(narrater.world.worldregion.to_narrative(), "region")
+
+    narrater.generate_background_story()
+    print(
+        f"Position: {narrater.background.position} \n\n{narrater.background.to_narrative()}\n\n"
+    )
+    text_to_speech(narrater.background.to_narrative(), "background")
+
+    response = narrater.start_adventure()
+    print(f"{response.text}\n")
+    text_to_speech(response.text, "story")
     while True:
-        user_input = input("Enter something: ")
-        response = generator.progress(1.0, user_input)
-        print(f"Response from Model: {response.text}")
+        user_input = input("")
+        response = narrater.next(user_input, "")
+        text_to_speech(response.text, "story")
+        print(f"{response.text}\n")
 
 
 if __name__ == "__main__":
