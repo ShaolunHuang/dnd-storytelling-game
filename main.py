@@ -9,7 +9,6 @@ from player_attribute import PlayerAttribute
 from player import Player
 import threading
 
-
 background = """The players are all members of a mercenary company called the Silver Blades. They have been hired by 
 a local lord to investigate a series of disappearances in the nearby village of Willow Creek. The lord believes that 
 the disappearances are the work of goblins, and he has asked the Silver Blades to track down the goblins and bring 
@@ -38,15 +37,15 @@ jj = Player(
     "unwavering faith.",
 )
 
-count = 0
+TOKEN_SIZE = 800
 
 
 def speak_content(content: str, name):
     count = 0
     pt = 0
     while pt < len(content):
-        if pt + 800 < len(content):
-            end = content.rfind(".", pt, pt + 800)
+        if pt + TOKEN_SIZE < len(content):
+            end = content.rfind(".", pt, pt + TOKEN_SIZE)
             curr_content = content[pt:end]
             pt = end + 1
         else:
@@ -73,7 +72,7 @@ def speak_content(content: str, name):
         count += 1
         with open(f"output_{name}_{count}.mp3", "wb") as out:
             out.write(response.audio_content)
-            # print(f'Audio content written to file "output_{name}_{count}.mp3"')
+            print(f'Audio content written to file "output_{name}_{count}.mp3"')
 
 
 def initAI():
@@ -107,12 +106,12 @@ def init_story(temperature, text_model, keywords, players):
             **parameters,
         ).text
         format_error = (
-            storyline.find("<world-setting>") == -1
-            or storyline.find("</world-setting>") == -1
-            or storyline.find("<cause>") == -1
-            or storyline.find("</cause>") == -1
-            or storyline.find("<objective>") == -1
-            or storyline.find("</objective>") == -1
+                storyline.find("<world-setting>") == -1
+                or storyline.find("</world-setting>") == -1
+                or storyline.find("<cause>") == -1
+                or storyline.find("</cause>") == -1
+                or storyline.find("<objective>") == -1
+                or storyline.find("</objective>") == -1
         )
     worldsetting = storyline.split("<world-setting>")[1].split("</world-setting>")[0]
     cause = storyline.split("<cause>")[1].split("</cause>")[0]
@@ -194,4 +193,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
