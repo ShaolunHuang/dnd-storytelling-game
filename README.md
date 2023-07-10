@@ -39,7 +39,7 @@ Provide the following environment variables:
 ## Usage
 
 ```bash
-python main.py
+python gui.py
 ```
 
 ## Contributing
