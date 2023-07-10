@@ -87,6 +87,9 @@ class Character:
     
     def get_all_inventory(self):
         return self.inventory.helmet, self.inventory.chestplate, self.inventory.leggings, self.inventory.boots, self.inventory.righthand, self.inventory.lefthand, self.inventory.inventory
+    
+    def get_name(self):
+        return self.name
 
 
 def generatePlayer(mode):

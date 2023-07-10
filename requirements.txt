@@ -6,3 +6,5 @@ opencv-python
 requests
 numpy
 matplotlib
+pydub
+pygame

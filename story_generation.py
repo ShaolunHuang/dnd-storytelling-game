@@ -108,3 +108,30 @@ class Generator:
             **parameters,
         )
         return response
+    
+    def generate_keywords(self, text):
+        parameters = {
+            "temperature": 1,
+            "max_output_tokens": 100,
+            "top_p": 0.8,
+            "top_k": 40,
+        }
+        response = self.text_model.predict(
+            f"""
+                {text}
+                According to the what the text says, select a scene you believe as most important and make the summary of the scene. 
+                Then, if it's possible, generate the keywords or key phrases of the summary on the following types:
+                main characters, interation, other character, location/surrounding , equipment of character, other object.
+                Start to prints the terms with <keyword> and end with </keyword>.
+                For example, the prints should be like this: 
+                <main characters> Alan, the heroes </main characters>
+                <interaction> fight </interaction>
+                <other characters> bandits </other characters>
+                <location/surrounding> cave </location/surrounding>
+                <equipment of character> swords, axes </equipment of character>
+                <other object> fire </other object>
+                
+                """,
+            **parameters,
+        )
+        return response

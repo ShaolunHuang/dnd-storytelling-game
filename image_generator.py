@@ -9,7 +9,7 @@ class ImageGenerator:
     def __init__(self):
         self.api_key = os.getenv("STABLE_DIFFUSION_API_KEY")
 
-    def get_image(self, prompt):
+    def get_image(self, prompt, counter):
         uri = "https://stablediffusionapi.com/api/v3/dreambooth"
         headers = {'Content-Type': 'application/json'}
         payload = {
@@ -44,7 +44,7 @@ class ImageGenerator:
             return
         else:
             if "output" in r.json() and len(r.json()["output"]) > 0:
-                with open("resources/images/img_generated.png", "wb") as f:
+                with open(f"resources/images/img_generated_{counter}.png", "wb") as f:
                         f.write(requests.get(r.json()["output"][0]).content)
                         print("Image saved to resources/img_generated.png")
             else:
@@ -53,7 +53,7 @@ class ImageGenerator:
                     return
                 id = r.json()["id"]
                 count = 0
-                while "status" in r.json() and r.json()["status"] == "processing" and count < 10:
+                while "status" in r.json() and r.json()["status"] == "processing" and count < 20:
                     uri = "https://stablediffusionapi.com/api/v4/dreambooth/fetch"
                     payload = {
                         "key": self.api_key,
@@ -65,7 +65,7 @@ class ImageGenerator:
                         print(f"ERROR: Error generating image. {e}")
                         return
                     if "output" in r.json() and len(r.json()["output"]) > 0:
-                        with open("resources/images/img_generated.png", "wb") as f:
+                        with open(f"resources/images/img_generated_{counter}.png", "wb") as f:
                                 f.write(requests.get(r.json()["output"][0]).content)
                                 print("Image saved to resources/img_generated.png")
                         break

@@ -10,6 +10,9 @@ from radar_image import radar_factory
 import matplotlib.pyplot as plt
 from image_generator import ImageGenerator
 from story_generation import Generator
+import os
+import re
+import pygame
 
 def edit_img():
     radar = cv2.imread("resources/images/radar.png")
@@ -39,10 +42,12 @@ class DNDStorytellingGame:
         self.window.title('DND Storytelling Game')
         self.window.geometry('1280x720')
         self.window.resizable(False, False)
-        self.encounter_num = 0
+        self.encounter_num = 1
         self.show_home()
 
     def set_canvas(self):
+        self.stop()
+        self.encounter_num = 1
         canvas_width = self.canvas.winfo_reqwidth()
         canvas_height = self.canvas.winfo_reqheight()
 
@@ -77,7 +82,7 @@ class DNDStorytellingGame:
             text='Show Encounter Images',
             width=16,
             height=2,
-            command=self.show_images)
+            command=lambda: self.show_images(0))
         self.canvas.create_window(center_x, canvas_height / 72 * 48, window=show_img_button, anchor=tk.NW)
         quit_button = tk.Button(self.window, text='Quit', width=16, height=2, command=self.window.quit)
         self.canvas.create_window(center_x, canvas_height / 72 * 54, window=quit_button, anchor=tk.NW)
@@ -130,7 +135,14 @@ class DNDStorytellingGame:
         self.canvas.create_window(canvas_width / 7 * 1.1, canvas_height / 10 * 8.5, window=back_button,
                                   anchor=tk.CENTER)
 
-    def show_images(self):
+    def show_images(self, pt):
+        self.img_files = [f for f in os.listdir("resources/images/") if os.path.isfile(os.path.join("resources/images/", f))]
+        if pt < 0:
+            self.set_canvas()
+            return
+        if pt >= len(self.img_files):
+            self.set_canvas()
+            return
         canvas_width = self.canvas.winfo_reqwidth()
         canvas_height = self.canvas.winfo_reqheight()
         for child in self.canvas.winfo_children():
@@ -140,19 +152,26 @@ class DNDStorytellingGame:
         self.canvas.create_image(0, 0, image=self.background_img, anchor=tk.NW)
         self.canvas.create_text(
             canvas_width / 2,
-            canvas_height / 3.6,
+            canvas_height / 10,
             text='Encounter Images',
             font=('Arial', 40),
             fill='white')
-        self.canvas.create_text(
-            canvas_width / 2,
-            canvas_height / 3.6 + 50,
-            text='No Images Available',
-            font=('Arial', 20),
-            fill='white')
-        back_button = tk.Button(self.window, text='Last Page', width=10, height=2, command=self.set_canvas)
+        if len(self.img_files) == 0:
+            self.canvas.create_text(
+                canvas_width / 2,
+                canvas_height / 3.6 + 50,
+                text='No Images Available',
+                font=('Arial', 20),
+                fill='white')
+        else:
+            self.generated_img = tk.PhotoImage(file=f'resources/images/{self.img_files[pt]}')
+            self.canvas.create_image(canvas_width / 2, canvas_height / 2, image=self.generated_img, anchor=tk.CENTER)
+            next_button = tk.Button(self.window, text='Next Page', width=10, height=2, command=lambda: self.show_images(pt + 1))
+            self.canvas.create_window(canvas_width / 7 * 6, canvas_height / 10 * 8.5, window=next_button, anchor=tk.CENTER)
+        back_button = tk.Button(self.window, text='Last Page', width=10, height=2, command=lambda: self.show_images(pt - 1))
         self.canvas.create_window(canvas_width / 7 * 1.1, canvas_height / 10 * 8.5, window=back_button,
                                   anchor=tk.CENTER)
+        
 
     def show_home(self):
         self.canvas = tk.Canvas(self.window, width=1280, height=720)
@@ -172,14 +191,12 @@ class DNDStorytellingGame:
         #self.canvas.create_text(canvas_width / 2, 100, text='Enter the Game Settings', font=('Arial', 40), fill='black')
 
         # First Page
-        self.canvas.create_text(canvas_width / 2, canvas_height / 4, text='Enter the keywords for this game background',
-                                font=field_font, fill='black')  # Text
-        self.canvas.create_text(canvas_width / 2, canvas_height / 4 + 50,
-                                text='Box left blank will be generated automatically', font=('Arial', 10), fill='black')
+        self.canvas.create_text(canvas_width / 3*0.95, canvas_height / 3*1.5, text='Enter the keywords for this \n game background',
+                                font=field_font, fill='black', justify="center")  # Text
 
         text_widget = tk.Text(self.window, width=40, height=8)
         # text_widget.insert('end', text)
-        text_widget_window = self.canvas.create_window(canvas_width / 2, canvas_height / 2, window=text_widget)
+        text_widget_window = self.canvas.create_window(canvas_width / 3*2.17, canvas_height /3*1.47, window=text_widget)
 
         def get_info():
             text = text_widget.get('1.0', 'end')
@@ -367,12 +384,12 @@ class DNDStorytellingGame:
         self.canvas.create_image(0, 0, image=self.background_img, anchor=tk.NW)
 
         # Generated Image
-        self.generated_img = tk.PhotoImage(file='resources/images/img_generated.png')
+        self.generated_img = tk.PhotoImage(file='resources/images/img_generated_1.png')
         self.canvas.create_image(canvas_width / 3.3, canvas_height / 2.3, image=self.generated_img, anchor=tk.CENTER)
 
         # Scrollable wordlsetting, region, background
         text_area = scrolledtext.ScrolledText(self.window, wrap = tk.WORD, width = 30,
-                                              height = 20, background= "#FAEED2", font = ("Times New Roman", 15))
+                                              height = 15, background= "#FAEED2", font = ("Times New Roman", 15))
         worldsetting = self.narrater.world.worldsetting.to_narrative()
         region = self.narrater.world.worldregion.to_narrative()
         background = self.narrater.background.to_narrative()
@@ -380,7 +397,7 @@ class DNDStorytellingGame:
         text_area.insert(tk.END, input)
         text_area.configure(state='disabled')
 
-        self.canvas.create_window(canvas_width / 4 * 3, canvas_height / 2, window=text_area,
+        self.canvas.create_window(canvas_width / 4 * 2.9, canvas_height / 2.5, window=text_area,
                                   anchor=tk.CENTER)
 
         back_button = tk.Button(self.window, text='Home', width=10, height=2, command=self.set_canvas)
@@ -390,12 +407,46 @@ class DNDStorytellingGame:
         next_button = tk.Button(self.window, text='Next Page', width=10, height=2, command=self.encounter_loop)
         self.canvas.create_window(canvas_width / 7 * 6, canvas_height / 10 * 8.5, window=next_button, anchor=tk.CENTER)
 
+        play_worldsetting = tk.Button(self.window, text='Play World Setting', width=15, height=2,  command=self.play_worldsetting)
+        self.canvas.create_window(canvas_width / 7 * 4.2, canvas_height / 10 * 7.5, window=play_worldsetting, anchor=tk.CENTER)
+
+        play_region = tk.Button(self.window, text='Play Region', width=10, height=2,  command=self.play_region)
+        self.canvas.create_window(canvas_width / 7 * 4.9, canvas_height / 10 * 7.5, window=play_region, anchor=tk.CENTER)
+
+        play_background = tk.Button(self.window, text='Play Background', width=15, height=2,  command=self.play_background)
+        self.canvas.create_window(canvas_width / 7 * 5.6, canvas_height / 10 * 7.5, window=play_background, anchor=tk.CENTER)
+
+    def play_worldsetting(self):
+        pygame.mixer.init()
+        pygame.mixer.music.load(f"resources/audios/output_worldsetting.wav")
+        pygame.mixer.music.play()
+
+    def play_region(self):
+        pygame.mixer.init()
+        pygame.mixer.music.load(f"resources/audios/output_region.wav")
+        pygame.mixer.music.play()
+
+    def play_background(self):
+        pygame.mixer.init()
+        pygame.mixer.music.load(f"resources/audios/output_background.wav")
+        pygame.mixer.music.play()
+
+    def play_story(self):
+        pygame.mixer.init()
+        pygame.mixer.music.load(f"resources/audios/output_story.wav")
+        pygame.mixer.music.play()
+
+    def stop(self):
+        pygame.mixer.init()
+        pygame.mixer.music.unload()
+
     def image_generator(self):
         img_generate = ImageGenerator()
         text = self.story_response
         
     
     def encounter_loop(self):
+        self.stop()
         # self.story_response is first suggestion
         response = self.story_response
         
@@ -409,20 +460,67 @@ class DNDStorytellingGame:
         self.canvas.create_image(0, 0, image=self.background_img, anchor=tk.NW)
 
         def next(player_choice,response):
-            if(response.text.find('"END"') != -1) or (response.text.find("END") != -1):
+            if(response.text.find('"END"') != -1) or (response.text.find("END") != -1) or (response.text.find("End") != -1):
                 self.set_canvas()
             # self.encounter_num += 1
             choice = player_choice.get("1.0", "end-1c")
             if(choice == ""):
-                messagebox.showwarning("Warning", "PLease make your choice.")
+                messagebox.showwarning("Warning", "Please make your choice.")
             else:
+                choice = self.player.get_name() + ": " + choice
                 self.story_response = self.narrater.next(choice, "")
-                text_to_speech(self.story_response.text, "story")
-                
                 print(f"{self.story_response.text}\n")
+                text_to_speech(self.story_response.text, "story")
+                keywords_generator = Generator("?")
+                keyword = keywords_generator.generate_keywords(self.story_response.text)
+                
+                print(f"{keyword}\n")
+                
+                keyword = keyword.text
+                
+                start_tag = '<'
+                end_tag = '>'
+                close_tag = '</'
+                keywords = []
+                
+                start = 0
+                while True:
+                    if start >=len(keyword): 
+                        break
+                    start = keyword.find(start_tag, start)
+                    if start == -1:  # No more tags
+                        break
+                    end = keyword.find(end_tag, start)
+                    if(end == -1):
+                        break
+                    close = keyword.find(close_tag, end)
+                    if(close == -1):
+                        break
+                    tag_content = keyword[end+1:close].strip()
+                    keywords.append(tag_content)
+                    start = close+1
+                
+                main_char = str(self.player.age) + " years old "+ str(self.player.sex) + " " + str(self.player.race) + " " + str(self.player.c_class)
+                print(f"{main_char}\n")
+                
+                keywords[0] = main_char
+                
+                out_keywords = ""
+                for words in keywords:
+                    if(words != ""):
+                        out_keywords += words + ", "
+                    
+                print(f"{out_keywords}\n")
+                image_gen = ImageGenerator()
+                self.encounter_num += 1
+                
+                image_gen.get_image("".join(out_keywords),str(self.encounter_num))
                 self.encounter_loop()
+          
+        if not os.path.exists(f'resources/images/img_generated_{self.encounter_num}.png'):  
+            self.encounter_num = self.encounter_num - 1
             
-        self.generated_img = tk.PhotoImage(file='resources/images/img_generated.png')
+        self.generated_img = tk.PhotoImage(file=f'resources/images/img_generated_{self.encounter_num}.png')
         self.canvas.create_image(canvas_width / 3.3, canvas_height / 2.3, image=self.generated_img, anchor=tk.CENTER)
         
         text_area = scrolledtext.ScrolledText(self.window, wrap = tk.WORD, width = 40,

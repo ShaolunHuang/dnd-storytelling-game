@@ -14,6 +14,7 @@ import os
 import threading
 from story_generation import Generator
 from story_narrator import Narrator
+from pydub import AudioSegment
 
 background = """
 The players are all members of a mercenary company called the Silver Blades. 
@@ -66,6 +67,7 @@ TOKEN_SIZE = 800
 def text_to_speech(content: str, name):
     count = 0
     pt = 0
+    audios = []
     while pt < len(content):
         if pt + TOKEN_SIZE < len(content):
             end = content.rfind(".", pt, pt + TOKEN_SIZE)
@@ -93,9 +95,17 @@ def text_to_speech(content: str, name):
         )
 
         count += 1
-        with open(f"resources/audios/output_{name}_{count}.mp3", "wb") as out:
+        with open(f"resources/audios/output_{name}_{count}.wav", "wb") as out:
             out.write(response.audio_content)
-            print(f'Audio content written to file "output_{name}_{count}.mp3"')
+            print(f'Audio content written to file "output_{name}_{count}.wav"')
+            audios.append(f"resources/audios/output_{name}_{count}.wav")
+    
+    combined = AudioSegment.empty()
+    for audio in audios:
+        combined += AudioSegment.from_wav(audio)
+        os.remove(audio)
+
+    combined.export(f"resources/audios/output_{name}.wav", format="wav")
 
 
 def speech_to_text(audio):
@@ -128,7 +138,7 @@ def background_generator(players, keywords):
     narrater = Narrator(players)
     narrater.generate_world(keywords)
     image_gen = ImageGenerator()
-    image_gen.get_image(", ".join(keywords))
+    image_gen.get_image(", ".join(keywords),"1")
     print(
         f"{narrater.world.worldsetting.to_narrative()}\n\n{narrater.world.worldregion.to_narrative()}\n\n"
     )
