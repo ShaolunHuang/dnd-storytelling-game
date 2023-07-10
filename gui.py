@@ -64,7 +64,7 @@ class DNDStorytellingGame:
             font=('Arial', 40),
             fill='white')
 
-        start_button = tk.Button(self.window, text='Single Player', width=16, height=2, command=self.start)
+        start_button = tk.Button(self.window, text='Single Player', width=20, height=2, command=self.start)
 
         button_width = start_button.winfo_reqwidth()
 
@@ -73,18 +73,18 @@ class DNDStorytellingGame:
         show_members_button = tk.Button(
             self.window,
             text='Display Production Team',
-            width=16,
+            width=20,
             height=2,
             command=self.show_members)
         self.canvas.create_window(center_x, canvas_height / 72 * 42, window=show_members_button, anchor=tk.NW)
         show_img_button = tk.Button(
             self.window,
             text='Show Encounter Images',
-            width=16,
+            width=20,
             height=2,
             command=lambda: self.show_images(0))
         self.canvas.create_window(center_x, canvas_height / 72 * 48, window=show_img_button, anchor=tk.NW)
-        quit_button = tk.Button(self.window, text='Quit', width=16, height=2, command=self.window.quit)
+        quit_button = tk.Button(self.window, text='Quit', width=20, height=2, command=self.window.quit)
         self.canvas.create_window(center_x, canvas_height / 72 * 54, window=quit_button, anchor=tk.NW)
 
     def show_members(self):
@@ -452,7 +452,7 @@ class DNDStorytellingGame:
         
         canvas_width = self.canvas.winfo_reqwidth()
         canvas_height = self.canvas.winfo_reqheight()
-        field_font = ('Algerian', 15)
+        field_font = ('Times New Roman', 15)
         for child in self.canvas.winfo_children():
             child.destroy()
         self.canvas.delete('all')
@@ -460,6 +460,7 @@ class DNDStorytellingGame:
         self.canvas.create_image(0, 0, image=self.background_img, anchor=tk.NW)
 
         def next(player_choice,response):
+            self.stop()
             if(response.text.find('"END"') != -1) or (response.text.find("END") != -1) or (response.text.find("End") != -1):
                 self.set_canvas()
             # self.encounter_num += 1
@@ -523,7 +524,7 @@ class DNDStorytellingGame:
         self.generated_img = tk.PhotoImage(file=f'resources/images/img_generated_{self.encounter_num}.png')
         self.canvas.create_image(canvas_width / 3.3, canvas_height / 2.3, image=self.generated_img, anchor=tk.CENTER)
         
-        text_area = scrolledtext.ScrolledText(self.window, wrap = tk.WORD, width = 40,
+        text_area = scrolledtext.ScrolledText(self.window, wrap = tk.WORD, width = 30,
                                               height = 16, background= "#FAEED2", font = field_font)
         input = f"""{response}\n"""
         text_area.insert(tk.END, input)
@@ -533,7 +534,7 @@ class DNDStorytellingGame:
                                   anchor=tk.CENTER)
         
         player_response = tk.Text(self.canvas, height=8, width=45)
-        self.canvas.create_window(canvas_width / 4 * 2.9, canvas_height / 3*2, window=player_response, anchor=tk.CENTER)
+        self.canvas.create_window(canvas_width / 4 * 2.9, canvas_height / 3*2.1, window=player_response, anchor=tk.CENTER)
 
         back_button = tk.Button(self.window, text='Home', width=10, height=2, command=self.set_canvas)
         self.canvas.create_window(canvas_width / 7 * 1.1, canvas_height / 10 * 8.5, window=back_button,
@@ -545,7 +546,8 @@ class DNDStorytellingGame:
         next_button = tk.Button(self.window, text='Next Page', width=10, height=2, command=lambda: next(player_response,response))
         self.canvas.create_window(canvas_width / 7 * 6, canvas_height / 10 * 8.5, window=next_button, anchor=tk.CENTER)
         
-        
+        play_story = tk.Button(self.window, text='Play Story', width=10, height=2,  command=self.play_story)
+        self.canvas.create_window(canvas_width / 7 * 5, canvas_height / 10 * 8.5, window=play_story, anchor=tk.CENTER)
         
     
     def inventory_page(self):
