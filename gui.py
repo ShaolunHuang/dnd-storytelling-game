@@ -2,17 +2,19 @@ import cv2
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
-from main import main
+from main import background_generator, text_to_speech
 from player import Character
 from player_attribute import PlayerAttribute, PlayerInventory
-
+from tkinter import scrolledtext
+from radar_image import radar_factory
+import matplotlib.pyplot as plt
+from image_generator import ImageGenerator
+from story_generation import Generator
 
 def edit_img():
-    background = cv2.imread("resources/background.png")
-    background = cv2.resize(background, (1280, 720))
-    for i in range(10):
-        background = cv2.GaussianBlur(background, (5, 5), cv2.BORDER_DEFAULT)
-    cv2.imwrite("resources/background_blurred.png", background)
+    radar = cv2.imread("resources/images/radar.png")
+    radar = cv2.resize(radar, (300, 300))
+    cv2.imwrite("resources/images/radar.png", radar)
 
 
 def check_string(string, name):
@@ -37,6 +39,7 @@ class DNDStorytellingGame:
         self.window.title('DND Storytelling Game')
         self.window.geometry('1280x720')
         self.window.resizable(False, False)
+        self.encounter_num = 0
         self.show_home()
 
     def set_canvas(self):
@@ -166,15 +169,17 @@ class DNDStorytellingGame:
         self.canvas.delete('all')
         self.background_img = tk.PhotoImage(file='resources/old_book.png')
         self.canvas.create_image(0, 0, image=self.background_img, anchor=tk.NW)
-        self.canvas.create_text(canvas_width/2, 100, text='Enter the Game Settings', font=('Arial', 40), fill='black')
+        #self.canvas.create_text(canvas_width / 2, 100, text='Enter the Game Settings', font=('Arial', 40), fill='black')
 
         # First Page
-        self.canvas.create_text(canvas_width/2, canvas_height/4, text='Enter the keywords for this game background', font=field_font, fill='black') # Text
-        self.canvas.create_text(canvas_width/2, canvas_height/4+50, text='Box left blank will be generated automatically', font=('Arial', 10), fill='black')
+        self.canvas.create_text(canvas_width / 2, canvas_height / 4, text='Enter the keywords for this game background',
+                                font=field_font, fill='black')  # Text
+        self.canvas.create_text(canvas_width / 2, canvas_height / 4 + 50,
+                                text='Box left blank will be generated automatically', font=('Arial', 10), fill='black')
 
         text_widget = tk.Text(self.window, width=40, height=8)
         # text_widget.insert('end', text)
-        text_widget_window = self.canvas.create_window(canvas_width/2, canvas_height/2, window=text_widget)
+        text_widget_window = self.canvas.create_window(canvas_width / 2, canvas_height / 2, window=text_widget)
 
         def get_info():
             text = text_widget.get('1.0', 'end')
@@ -191,7 +196,6 @@ class DNDStorytellingGame:
 
         next_button = tk.Button(self.window, text='Next Page', width=10, height=2, command=get_info)
         self.canvas.create_window(canvas_width / 7 * 6, canvas_height / 10 * 8.5, window=next_button, anchor=tk.CENTER)
-
 
     def make_player(self, story_background):
         canvas_width = self.canvas.winfo_reqwidth()
@@ -327,8 +331,8 @@ class DNDStorytellingGame:
             info = get_info()
             if info is None:
                 return
-            player = Character()
-            player.create(
+            self.player = Character()
+            self.player.create(
                 info[0],
                 info[1],
                 int(info[2]),
@@ -340,7 +344,9 @@ class DNDStorytellingGame:
                 PlayerInventory([], [], [], [], [], [], []),
                 info[7],
             )
-            main([player], story_background)
+            self.narrater, self.story_response = background_generator([self.player], story_background)
+            self.story_begin()
+
 
         # Flip the book
         back_button = tk.Button(self.window, text='Last Page', width=10, height=2, command=self.start)
@@ -350,14 +356,185 @@ class DNDStorytellingGame:
         next_button = tk.Button(self.window, text='Next Page', width=10, height=2, command=generatePlayer)
         self.canvas.create_window(canvas_width / 7 * 6, canvas_height / 10 * 8.5, window=next_button, anchor=tk.CENTER)
 
-    # def generatePlayer(self):
+    def story_begin(self):
+        canvas_width = self.canvas.winfo_reqwidth()
+        canvas_height = self.canvas.winfo_reqheight()
+        field_font = ('Algerian', 15)
+        for child in self.canvas.winfo_children():
+            child.destroy()
+        self.canvas.delete('all')
+        self.background_img = tk.PhotoImage(file='resources/old_book.png')
+        self.canvas.create_image(0, 0, image=self.background_img, anchor=tk.NW)
+
+        # Generated Image
+        self.generated_img = tk.PhotoImage(file='resources/images/img_generated.png')
+        self.canvas.create_image(canvas_width / 3.3, canvas_height / 2.3, image=self.generated_img, anchor=tk.CENTER)
+
+        # Scrollable wordlsetting, region, background
+        text_area = scrolledtext.ScrolledText(self.window, wrap = tk.WORD, width = 30,
+                                              height = 20, background= "#FAEED2", font = ("Times New Roman", 15))
+        worldsetting = self.narrater.world.worldsetting.to_narrative()
+        region = self.narrater.world.worldregion.to_narrative()
+        background = self.narrater.background.to_narrative()
+        input = f"""World Setting:\n{worldsetting}\n\nRegion:\n{region}\n\nBackground:\n{background.strip("}")}"""
+        text_area.insert(tk.END, input)
+        text_area.configure(state='disabled')
+
+        self.canvas.create_window(canvas_width / 4 * 3, canvas_height / 2, window=text_area,
+                                  anchor=tk.CENTER)
+
+        back_button = tk.Button(self.window, text='Home', width=10, height=2, command=self.set_canvas)
+        self.canvas.create_window(canvas_width / 7 * 1.1, canvas_height / 10 * 8.5, window=back_button,
+                                  anchor=tk.CENTER)
+
+        next_button = tk.Button(self.window, text='Next Page', width=10, height=2, command=self.encounter_loop)
+        self.canvas.create_window(canvas_width / 7 * 6, canvas_height / 10 * 8.5, window=next_button, anchor=tk.CENTER)
+
+    def image_generator(self):
+        img_generate = ImageGenerator()
+        text = self.story_response
+        
+    
+    def encounter_loop(self):
+        # self.story_response is first suggestion
+        response = self.story_response
+        
+        canvas_width = self.canvas.winfo_reqwidth()
+        canvas_height = self.canvas.winfo_reqheight()
+        field_font = ('Algerian', 15)
+        for child in self.canvas.winfo_children():
+            child.destroy()
+        self.canvas.delete('all')
+        self.background_img = tk.PhotoImage(file='resources/old_book.png')
+        self.canvas.create_image(0, 0, image=self.background_img, anchor=tk.NW)
+
+        def next(player_choice,response):
+            if(response.text.find('"END"') != -1) or (response.text.find("END") != -1):
+                self.set_canvas()
+            # self.encounter_num += 1
+            choice = player_choice.get("1.0", "end-1c")
+            if(choice == ""):
+                messagebox.showwarning("Warning", "PLease make your choice.")
+            else:
+                self.story_response = self.narrater.next(choice, "")
+                text_to_speech(self.story_response.text, "story")
+                
+                print(f"{self.story_response.text}\n")
+                self.encounter_loop()
+            
+        self.generated_img = tk.PhotoImage(file='resources/images/img_generated.png')
+        self.canvas.create_image(canvas_width / 3.3, canvas_height / 2.3, image=self.generated_img, anchor=tk.CENTER)
+        
+        text_area = scrolledtext.ScrolledText(self.window, wrap = tk.WORD, width = 40,
+                                              height = 16, background= "#FAEED2", font = field_font)
+        input = f"""{response}\n"""
+        text_area.insert(tk.END, input)
+        text_area.configure(state='disabled')
+
+        self.canvas.create_window(canvas_width / 4 * 2.9, canvas_height / 2.8, window=text_area,
+                                  anchor=tk.CENTER)
+        
+        player_response = tk.Text(self.canvas, height=8, width=45)
+        self.canvas.create_window(canvas_width / 4 * 2.9, canvas_height / 3*2, window=player_response, anchor=tk.CENTER)
+
+        back_button = tk.Button(self.window, text='Home', width=10, height=2, command=self.set_canvas)
+        self.canvas.create_window(canvas_width / 7 * 1.1, canvas_height / 10 * 8.5, window=back_button,
+                                  anchor=tk.CENTER)
+        
+        inventory_button = tk.Button(self.window, text='Check Status', width=10, height=2, command=self.inventory_page)
+        self.canvas.create_window(canvas_width / 7 * 3.6, canvas_height / 10 * 8.5, window=inventory_button, anchor=tk.CENTER)
+
+        next_button = tk.Button(self.window, text='Next Page', width=10, height=2, command=lambda: next(player_response,response))
+        self.canvas.create_window(canvas_width / 7 * 6, canvas_height / 10 * 8.5, window=next_button, anchor=tk.CENTER)
+        
+        
+        
+    
+    def inventory_page(self):
+        canvas_width = self.canvas.winfo_reqwidth()
+        canvas_height = self.canvas.winfo_reqheight()
+        field_font = ('Algerian', 15)
+        for child in self.canvas.winfo_children():
+            child.destroy()
+        self.canvas.delete('all')
+        self.background_img = tk.PhotoImage(file='resources/old_book.png')
+        self.canvas.create_image(0, 0, image=self.background_img, anchor=tk.NW)
+        strength, constitution, dexterity, intelligence, wisdom, charisma = self.player.get_all_attributes()
+        data = [['Strength', 'Constitution', 'Dexterity', 'Intelligence', 'Wisdom', 'Charisma'],
+        ('Player Attributes', [
+            [strength, constitution, dexterity, intelligence, wisdom, charisma]])]
+
+        N = len(data[0])
+        theta = radar_factory(N, frame='polygon')
+
+        spoke_labels = data.pop(0)
+        title, case_data = data[0]
+
+        fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(projection='radar'))
+        fig.subplots_adjust(top=0.85, bottom=0.05)
+
+        ax.set_rgrids([4, 6, 8, 10])
+        ax.set_title(title,  position=(0.5, 1.1), ha='center')
+
+        for d in case_data:
+            line = ax.plot(theta, d)
+            ax.fill(theta, d,  alpha=0.25)
+        ax.set_varlabels(spoke_labels)
+
+        plt.savefig('resources/images/radar.png')
+        plt.close()
+        edit_img()
+        
+        p_name, p_sex, p_background, p_race, p_age, p_level, p_class = self.player.get_all_info()
+        # Player Name
+        self.canvas.create_text(canvas_width / 6+10, canvas_height / 10 * 2, text='Name', font=field_font,
+                                fill='black')  # Text
+        self.canvas.create_text(canvas_width / 6 * 2+10, canvas_height / 10 * 2, text=p_name, font=field_font,
+                                fill='black')
+
+        # Sex
+        self.canvas.create_text(canvas_width / 6+10, canvas_height / 10 * 3, text='Sex', font=field_font,
+                                fill='black')  # List of Choice
+        self.canvas.create_text(canvas_width / 6 * 2+10, canvas_height / 10 * 3, text=p_sex, font=field_font,
+                                fill='black')
+
+        # Age
+        self.canvas.create_text(canvas_width / 6+10, canvas_height / 10 * 4, text='Age', font=field_font,
+                                fill='black')  # Text
+        self.canvas.create_text(canvas_width / 6 * 2+10, canvas_height / 10 * 4, text=p_age, font=field_font,
+                                fill='black')
+
+        # Race
+        self.canvas.create_text(canvas_width / 6+10, canvas_height / 10 * 5, text='Race', font=field_font,
+                                fill='black')  # Text
+        self.canvas.create_text(canvas_width / 6 * 2+10, canvas_height / 10 * 5, text=p_race, font=field_font,
+                                fill='black')
+
+        # Level
+        self.canvas.create_text(canvas_width / 6+10, canvas_height / 10 * 6, text='Level', font=field_font,
+                                fill='black')  # Text
+        self.canvas.create_text(canvas_width / 6 * 2+10, canvas_height / 10 * 6, text=p_level, font=field_font,
+                                fill='black')
+
+        # Class
+        self.canvas.create_text(canvas_width / 6+10, canvas_height / 10 * 7, text='Class', font=field_font,
+                                fill='black')  # Text
+        self.canvas.create_text(canvas_width / 6 * 2+10, canvas_height / 10 * 7, text=p_class, font=field_font,
+                                fill='black')
+        
+        self.generated_img = tk.PhotoImage(file='resources/images/radar.png')
+        self.canvas.create_image(canvas_width / 6*4.5, canvas_height / 10*4, image=self.generated_img, anchor=tk.CENTER)
+
+        # Flip the book
+        back_button = tk.Button(self.window, text='Back', width=10, height=2, command=self.encounter_loop)
+        self.canvas.create_window(canvas_width / 7 * 1.1, canvas_height / 10 * 8.5, window=back_button, anchor=tk.CENTER)
+
 
     def mainloop(self):
         self.window.mainloop()
 
 
 def start_game():
-    edit_img()
     game = DNDStorytellingGame()
     game.mainloop()
 

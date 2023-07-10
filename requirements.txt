@@ -4,3 +4,5 @@ google-cloud-texttospeech
 google-cloud-speech
 opencv-python
 requests
+numpy
+matplotlib

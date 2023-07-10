@@ -123,8 +123,7 @@ def speech_to_text(audio):
 
     return response
 
-
-def main(players, keywords):
+def background_generator(players, keywords):
     vertexai.init(project=GOOGLE_CLOUD_PROJECT_ID, location="us-central1")
     narrater = Narrator(players)
     narrater.generate_world(keywords)
@@ -145,6 +144,11 @@ def main(players, keywords):
     response = narrater.start_adventure()
     print(f"{response.text}\n")
     text_to_speech(response.text, "story")
+    return narrater, response
+
+
+def main(players, keywords):
+    narrater = background_generator(players, keywords)
     while True:
         user_input = input("")
         response = narrater.next(user_input, "")

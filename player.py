@@ -78,6 +78,15 @@ class Character:
             self.inventory.to_string(),
             "",
         )
+    
+    def get_all_info(self):
+        return self.name, self.sex, self.background, self.race, self.age, self.level, self.c_class
+    
+    def get_all_attributes(self):
+        return self.attributes.strength, self.attributes.constitution, self.attributes.dexterity, self.attributes.intelligence, self.attributes.wisdom, self.attributes.charisma
+    
+    def get_all_inventory(self):
+        return self.inventory.helmet, self.inventory.chestplate, self.inventory.leggings, self.inventory.boots, self.inventory.righthand, self.inventory.lefthand, self.inventory.inventory
 
 
 def generatePlayer(mode):
