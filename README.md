@@ -42,6 +42,10 @@ Provide the following environment variables:
 python gui.py
 ```
 
+## Demo
+
+For Demo and Contest information please see: https://lablab.ai/event/google-vertex-ai-hackathon/path-finder/dnd-storytelling-game
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first
